@@ -1,0 +1,83 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Tax } from './tax.entity';
+import { CreateTaxDto } from './dtos/tax.dto';
+
+@Injectable()
+export class TaxService {
+  constructor(
+    @InjectRepository(Tax)
+    private taxRepository: Repository<Tax>,
+  ) {}
+
+  //! create tax
+  async createTax(createTaxDto: CreateTaxDto) {
+    const existingSlab = await this.taxRepository.findOne({
+      where: {
+        minSalary: LessThanOrEqual(createTaxDto.maxSalary),
+        maxSalary: MoreThanOrEqual(createTaxDto.minSalary),
+      },
+    });
+
+    if (existingSlab) {
+      throw new ConflictException('This slab exists in DB');
+    }
+
+    const newTax = this.taxRepository.create(createTaxDto);
+
+    await this.taxRepository.save(newTax);
+
+    return newTax;
+  }
+
+  async getAllTax() {
+    const data = await this.taxRepository.find();
+
+    return data;
+  }
+
+  async getTaxById(id: number) {
+    return await this.taxRepository.findOne({
+      where: { id },
+    });
+  }
+
+  async updateTax(id: number, createTaxDto: CreateTaxDto) {
+    const tax = await this.taxRepository.findOne({
+      where: { id },
+    });
+
+    if (!tax) {
+      throw new NotFoundException('Employee Does not exists');
+    }
+
+    tax.maxSalary = createTaxDto.maxSalary;
+    tax.minSalary = createTaxDto.minSalary;
+    tax.percentage = createTaxDto.percentage;
+
+    return await this.taxRepository.save(tax);
+  }
+
+  async deleteTax(id: number) {
+    if (!id) {
+      throw new BadRequestException('Invalid ID');
+    }
+
+    const result = await this.taxRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Item not found');
+    }
+
+    return {
+      success: true,
+      message: 'Tax deleted successfully',
+    };
+  }
+}

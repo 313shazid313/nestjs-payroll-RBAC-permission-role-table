@@ -1,0 +1,111 @@
+import { Injectable } from '@nestjs/common';
+import { Between, Repository } from 'typeorm';
+import { Attendance, AttendanceStatus } from './attendance.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AttendanceCreateDto } from './dtos/createAttendance.dto';
+import { ConflictException } from '@nestjs/common';
+
+const officeStartTime = new Date();
+officeStartTime.setHours(9, 0, 0, 0);
+
+@Injectable()
+export class AttendanceService {
+  constructor(
+    @InjectRepository(Attendance)
+    private attendanceRepository: Repository<Attendance>,
+  ) {}
+
+  //! Create attendance record for an employee (checkin)
+  async createAttendance(attendanceCreateDto: AttendanceCreateDto) {
+    //! Check if attendance for the employee on the given date already exists
+    const existesAttendance = await this.attendanceRepository.findOne({
+      where: {
+        date: attendanceCreateDto.date,
+      },
+    });
+
+    if (existesAttendance) {
+      throw new ConflictException(
+        'Attendance for this employee on this date already exists in this date',
+      );
+    }
+
+    //! Check if the date is a holiday
+    const isHoliday = await this.attendanceRepository.manager.findOne(
+      'Holiday',
+      {
+        where: {
+          date: attendanceCreateDto.date,
+        },
+      },
+    );
+
+    if (isHoliday) {
+      throw new ConflictException('Attendance cannot be created on a holiday');
+    }
+
+    //! Check if the employee is late
+    if (new Date() > officeStartTime && !isHoliday) {
+      const attendance = this.attendanceRepository.create({
+        ...attendanceCreateDto,
+        employee_id: { id: attendanceCreateDto.employee_id },
+        status: [AttendanceStatus.LATE],
+        checkInTime: new Date(),
+      });
+      return await this.attendanceRepository.save(attendance);
+    }
+
+    const attendance = this.attendanceRepository.create({
+      ...attendanceCreateDto,
+      employee_id: { id: attendanceCreateDto.employee_id },
+      status: [AttendanceStatus.PRESENT],
+      checkInTime: new Date(),
+    });
+    return await this.attendanceRepository.save(attendance);
+  }
+
+  async getAllAttendances() {
+    return await this.attendanceRepository.find({
+      relations: ['employee_id'],
+    });
+  }
+
+  async getAttendanceById(id: number) {
+    return await this.attendanceRepository.findOne({
+      where: { id },
+      relations: ['employee_id'],
+    });
+  }
+
+  async monthlyWorkingHour(id: number, month: number, year: number) {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 1);
+
+    const totalAttendance = await this.attendanceRepository.count({
+      where: {
+        employee_id: { id },
+        date: Between(startDate, endDate),
+      },
+      relations: ['employee_id'],
+    });
+    // console.log(totalAttendance);
+    return totalAttendance * 8;
+  }
+
+  async checkOut(id: number) {
+    const attendance = await this.attendanceRepository.findOne({
+      where: { id },
+    });
+
+    if (!attendance) {
+      throw new ConflictException('Attendance record not found');
+    }
+
+    if (attendance.checkInTime && attendance.checkOutTime) {
+      throw new ConflictException('Employee has already checked out');
+    }
+
+    attendance.checkOutTime = new Date();
+    return await this.attendanceRepository.save(attendance);
+  }
+}
