@@ -13,7 +13,9 @@ export class EmployeesService {
 
   async createEmployee(employeesCreateDto: EmployeeCreateDto) {
     const employee = await this.employeesRepository.findOne({
-      where: { email: employeesCreateDto.email },
+      where: {
+        email: employeesCreateDto.email,
+      },
     });
 
     if (employee) {
@@ -25,6 +27,9 @@ export class EmployeesService {
       department_id: {
         id: employeesCreateDto.department_id,
       },
+      user: {
+        id: employeesCreateDto.user,
+      },
     });
 
     return await this.employeesRepository.save(newEmployee);
@@ -34,6 +39,14 @@ export class EmployeesService {
     return await this.employeesRepository.find({
       relations: ['department_id'],
       order: { id: 'DESC' },
+      select: {
+        id: true,
+        name: true,
+        department_id: {
+          id: true,
+          name: true,
+        },
+      },
     });
   }
 
@@ -57,6 +70,9 @@ export class EmployeesService {
       ...employeesCreateDto,
       department_id: {
         id: employeesCreateDto.department_id,
+      },
+      user: {
+        id: employeesCreateDto.user,
       },
     });
 

@@ -16,7 +16,7 @@ export class PermissionService {
   ) {}
 
   async createPermission(createPermissionDto: CreatePermissionDto) {
-    const isExists = await this.permissionRepository.find({
+    const isExists = await this.permissionRepository.findOne({
       where: {
         action: createPermissionDto.action,
         subject: createPermissionDto.subject,

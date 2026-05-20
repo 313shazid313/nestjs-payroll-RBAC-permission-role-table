@@ -42,7 +42,7 @@ export class AuthService {
       email: user.email,
       roles: user.roles,
     };
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     return {
       payload,
