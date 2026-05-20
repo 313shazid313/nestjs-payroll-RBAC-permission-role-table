@@ -69,7 +69,7 @@ export class RoleService {
       ...updateRoleDto,
       permissions: updateRoleDto.permissionIds?.map((id) => ({ id })) ?? [],
     });
-    console.log(updateRole);
+    // console.log(updateRole);
 
     if (!updateRole) {
       throw new ConflictException(`Role preload failed`);

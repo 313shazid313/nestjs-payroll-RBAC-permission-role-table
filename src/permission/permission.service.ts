@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Permission } from './permission.entity';
@@ -16,11 +16,28 @@ export class PermissionService {
   ) {}
 
   async createPermission(createPermissionDto: CreatePermissionDto) {
+    const isExists = await this.permissionRepository.find({
+      where: {
+        action: createPermissionDto.action,
+        subject: createPermissionDto.subject,
+      },
+    });
+
+    if (isExists) {
+      throw new ConflictException(
+        `The action : ${createPermissionDto.action}  and subject : ${createPermissionDto.subject} already exists`,
+      );
+    }
+
     const permission = this.permissionRepository.create({
       action: createPermissionDto.action,
       subject: createPermissionDto.subject,
     });
 
     return await this.permissionRepository.save(permission);
+  }
+
+  async getPermissions() {
+    return await this.permissionRepository.find({ relations: ['roles'] });
   }
 }

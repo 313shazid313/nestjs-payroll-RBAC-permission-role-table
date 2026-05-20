@@ -53,8 +53,8 @@ export class DepartmentService {
     return this.departmentRepository.save(department);
   }
 
-  async deleteDepartment(id: number) {
-    const result = await this.departmentRepository.delete(id);
-    return { success: (result.affected ?? 0) > 0 };
-  }
+  // async deleteDepartment(id: number) {
+  //   const result = await this.departmentRepository.delete(id);
+  //   return { success: (result.affected ?? 0) > 0 };
+  // }
 }

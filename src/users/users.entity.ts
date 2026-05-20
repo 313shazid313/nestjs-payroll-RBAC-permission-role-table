@@ -9,12 +9,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum UserRole {
-  ADMIN = 'admin',
-  HR_MANAGER = 'hrmanager',
-  FINANCE_OFFICER = 'financeofficer',
-  EMPLOYEE = 'employee',
-}
+// export enum UserRole {
+//   ADMIN = 'admin',
+//   HR_MANAGER = 'hrmanager',
+//   FINANCE_OFFICER = 'financeofficer',
+//   EMPLOYEE = 'employee',
+// }
 
 @Entity()
 export class Users {

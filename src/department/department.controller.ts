@@ -1,7 +1,7 @@
 import {
   Controller,
   Put,
-  Delete,
+  // Delete,
   Post,
   Get,
   Body,
@@ -114,23 +114,23 @@ export class DepartmentController {
     return this.departmentService.updateDepartment(id, departmentDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete department' })
-  @ApiParam({
-    name: 'id',
-    type: Number,
-    example: 1,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Department deleted successfully',
-    schema: {
-      example: {
-        message: 'Department deleted',
-      },
-    },
-  })
-  async deleteDepartment(@Param('id') id: number) {
-    return this.departmentService.deleteDepartment(id);
-  }
+  // @Delete(':id')
+  // @ApiOperation({ summary: 'Delete department' })
+  // @ApiParam({
+  //   name: 'id',
+  //   type: Number,
+  //   example: 1,
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Department deleted successfully',
+  //   schema: {
+  //     example: {
+  //       message: 'Department deleted',
+  //     },
+  //   },
+  // })
+  // async deleteDepartment(@Param('id') id: number) {
+  //   return this.departmentService.deleteDepartment(id);
+  // }
 }
